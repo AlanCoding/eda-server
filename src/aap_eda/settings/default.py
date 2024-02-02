@@ -465,3 +465,12 @@ dab_settings = os.path.join(
     os.path.dirname(dynamic_config.__file__), "dynamic_settings.py"
 )
 include(dab_settings)
+
+# ANSIBLE_BASE_ROLE_PRECREATE = {}
+
+# ANSIBLE_BASE_PERMISSION_MODEL = 'core.Permission'
+
+ANSIBLE_BASE_SERVICE_PREFIX = 'eda'
+
+ANSIBLE_BASE_TEAM_MODEL = 'core.Team'
+ANSIBLE_BASE_ORGANIZATION_MODEL = 'core.Organization'
