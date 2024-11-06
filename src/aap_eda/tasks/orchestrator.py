@@ -67,7 +67,8 @@ def get_process_parent(
     return klass.objects.get(id=parent_id)
 
 
-def _manage_no_lock(process_parent_type: str, id: int) -> None:
+@task(on_duplicate='discard')
+def _manage(process_parent_type: str, id: int) -> None:
     """Manage the activation with the given id.
 
     It will run pending user requests or monitor the activation
@@ -104,20 +105,6 @@ def _manage_no_lock(process_parent_type: str, id: int) -> None:
             f"Processing monitor request for {process_parent_type} {id}",
         )
         ActivationManager(process_parent).monitor()
-
-
-@task()
-def _manage(process_parent_type: str, id: int) -> None:
-    with advisory_lock(
-        _manage_process_job_id(process_parent_type, id), wait=False
-    ) as acquired:
-        if not acquired:
-            LOGGER.debug(
-                f"Method _manage({process_parent_type}, {id}) already being ran, exiting"
-            )
-            return
-
-        _manage_no_lock(process_parent_type, id)
 
 
 def _run_request(
@@ -170,13 +157,6 @@ def dispatch(
     if request_type is None:
         request_type = "Monitor"
 
-    with advisory_lock(job_id, wait=False) as acquired:
-        if not acquired:
-            LOGGER.debug(
-                f"_manage({job_id}) already being ran, not dispatching request {request_type}"
-            )
-            return
-
     LOGGER.info(
         f"Dispatching request {request_type} for {process_parent_type} "
         f"{process_parent_id}",
@@ -201,7 +181,8 @@ def dispatch(
     ]:
         LOGGER.info(
             f"Dispatching {process_parent_type} "
-            f"{process_parent_id} as new process.",
+            f"{process_parent_id} as new process."
+            f" Prior status '{process_parent.status}'",
         )
         try:
             queue_name = get_least_busy_queue_name()
