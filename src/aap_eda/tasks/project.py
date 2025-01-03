@@ -14,11 +14,15 @@
 
 import logging
 
+from ansible_base.lib.utils.db import advisory_lock
 from django.conf import settings
 
 from aap_eda.core import models
 from aap_eda.services.project import ProjectImportError, ProjectImportService
+<<<<<<< HEAD
 from ansible_base.lib.utils.db import advisory_lock
+=======
+>>>>>>> 945932e (Revert pyproject back to main branch)
 from dispatcher.control import Control
 from dispatcher.publish import task
 
