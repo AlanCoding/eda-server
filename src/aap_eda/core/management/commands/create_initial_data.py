@@ -1465,8 +1465,13 @@ class Command(BaseCommand):
                 desc += f" and its child resources - {', '.join(child_names)}"  # noqa: E501
 
             # create resource admin role
+            model_name = cls._meta.verbose_name.title()
+            role_name = f"{model_name} Admin"
+            if model_name == 'Project':
+                # AAP-49486 need special-case to make different from AWX name
+                role_name = f'EDA {model_name} Admin'
             role, created = RoleDefinition.objects.update_or_create(
-                name=f"{cls._meta.verbose_name.title()} Admin",
+                name=role_name,
                 defaults={
                     "description": desc,
                     "content_type": ct,
@@ -1484,11 +1489,17 @@ class Command(BaseCommand):
             # ignore team model as it makes no sense to have Use role for it
             # and should be managed by Admin users only
             if cls._meta.model_name != "team":
+                model_name = cls._meta.verbose_name.title()
+                role_name = f"{model_name} Use"
+                if model_name == 'Project':
+                    # AAP-49486 need special-case to make different from AWX name
+                    role_name = f'EDA {model_name} Use'
+
                 (
                     use_role,
                     use_role_created,
                 ) = RoleDefinition.objects.update_or_create(
-                    name=f"{cls._meta.verbose_name.title()} Use",
+                    name=role_name,
                     defaults={
                         "description": f"Has use permissions to a single {cls._meta.verbose_name}",  # noqa: E501
                         "content_type": ct,
